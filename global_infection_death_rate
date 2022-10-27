@@ -1,0 +1,75 @@
+#Source data has been downloaded from https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data.csv
+#Source data originates from https://ourworldindata.org/
+#SQL queries shown below can be used to analyze the raw data and find out the specifics of the Covid-19 situation of the world
+
+#Output table 1 shows the total infections, deaths globally and the infection and deathrate in different countries of the world up to the date when the data has   been downloaded
+        SELECT
+          location,
+          population,
+         ## to find out the maximum from column 'total_cases'  which is simply the rolling sum of column 'new_cases' 
+          max(total_cases) as total_cases_to_date,
+         ## to find out the maximum of column 'total_deaths' which is the rolling sum of column 'new_deaths'
+          max(total_deaths) as total_deaths_to_date,
+         ## to find out the infection rate of each country
+          (max(total_cases)/population)*100 as infection_rate,
+         ## to find out the death rate of infected people from each country
+          (max(total_deaths)/max(total_cases))*100 as death_rate
+        FROM
+          portfolio_project.covid_data
+        WHERE
+          continent is not null and ##this line prevents the continental data from infiltering the country data, which is a drawback of the raw data
+          ##following two line ensure that only the complete data of each country is considered
+          total_cases is not null and
+          total_deaths is not null
+        ##to group the output based on countries (location)
+        GROUP BY
+          location,
+          population
+        ORDER BY
+          total_cases_to_date desc
+  
+  
+#Output table 2 can be used to prepare a chart for the rate of infection on the available timeline
+#insert a where clause to generate output for the desired location
+        SELECT
+          date,
+          location,
+          new_cases,
+          total_cases
+        FROM
+          portfolio_project.covid_data
+        WHERE
+            location like '%<country_name>%'
+        ORDER BY
+          location, date
+  
+  
+#Output table 3 shows the vaccination data of different location
+#Source table has been prepared from the same raw table as above
+        SELECT
+          location,
+          population,
+          max(people_vaccinated) as total_vaccinated_people,
+          (max(people_vaccinated) / population)*100 as vaccination_rate
+        FROM
+          portfolio_project.covid_vaccination
+        GROUP BY
+          location, population
+        ORDER BY
+          location
+  
+#Output table 4 can be used to prepare a chart on the vaccination rates of different locations
+#insert a where clause to filter by location
+         SELECT
+          date,
+          location,
+          population,
+          new_vaccinations,
+          total_vaccinations
+        FROM 
+          portfolio_project.covid_vaccination
+        WHERE
+          location like '%<country_name>%'
+          continent is not null
+        ORDER BY
+          location, date
