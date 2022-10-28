@@ -39,6 +39,7 @@
         FROM
           portfolio_project.covid_data
         WHERE
+            continent IS NOT NULL
             location like '%<country_name>%'
         ORDER BY
           location, date
@@ -53,6 +54,8 @@
           (max(people_vaccinated) / population)*100 as vaccination_rate
         FROM
           portfolio_project.covid_vaccination
+        WHERE
+          continent IS NOT NULL
         GROUP BY
           location, population
         ORDER BY
@@ -69,7 +72,7 @@
         FROM 
           portfolio_project.covid_vaccination
         WHERE
-          location like '%<country_name>%'
-          continent is not null
+          location LIKE '%<country_name>%'
+          continent IS NOT NULL
         ORDER BY
           location, date
